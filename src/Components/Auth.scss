@@ -1,0 +1,53 @@
+.auth-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+}
+
+.design-content{
+    width: 60%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // background-color: white;
+      background: radial-gradient(
+    ellipse at center,
+    #eaf6ff 0%,
+    #eaeeff 35%,
+    #b7bfeb 100%
+  );
+
+    img{
+        width: 100%;
+        height: 100vh;
+        object-fit: cover; 
+    }
+}
+
+.vitaeLogo{
+    width: 100%;
+    font-weight: bolder;
+    font-size: 50px;
+    color: white;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    // margin-top: -350px;
+    // background-color: red;
+    font-family: "amsi-pro-black";
+
+}
+
+.wavelg{
+    // background-color: #5b7dfd;
+    background: linear-gradient(90deg,#5b7dfd 0%,#015091 100%) ;
+    width: 40%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
