@@ -1,9 +1,9 @@
 import { Outlet } from "react-router-dom";
 import "./Auth.scss";
 
-import illustration from "../assets/illust.jpg";
+// import illustration from "../assets/illust.jpg";
 import illustration2 from "../assets/illu1.png";
-import illustration3 from "../assets/illu2.png";
+// import illustration3 from "../assets/illu2.png";
 
 import star  from "../assets/star.svg";
 

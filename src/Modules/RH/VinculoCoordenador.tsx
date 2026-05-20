@@ -1,5 +1,5 @@
 import "../../App.scss";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import usePagination from "../../hooks/usePagination";
 import Pagination from "../../Components/Pagination2";
 import ModalBase from "../../Components/Modal";
@@ -26,21 +26,35 @@ function SetorSelectionModal({
 }: SetorSelectionModalProps) {
   // Estado para manter os setores selecionados
   const [selectedSetores, setSelectedSetores] = useState<number[]>([]);
+  const [displayData, setDisplayData] = useState<Setores[]>([]);
+  const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
 
   const {
     data: setores,
     loading,
     pagination,
     setCurrentPage,
-  } = usePagination<Setores>("Rh/setores", 25);
+  } = usePagination<Setores>("Rh/setores", 10);
 
-  const handleSave = async () => {
-    // Salvar os setores selecionados para este usuário
-    // await api.post(`Rh/vincularSetor/${userId}`, { setores: selectedSetores });
-    // console.log(selectedSetores)
-    // Fechar modal ou mostrar sucesso
+    const handleSearchResult = (searchData: any) => {
+      console.log(searchData)
+    if (searchData === null) {
+      setIsSearchMode(false);
+      setDisplayData(setores);
+    } else {
+      setIsSearchMode(true);
+      const results = Array.isArray(searchData.data) ? searchData.data : [searchData.data];
+      setDisplayData(results);
+    }
   };
 
+    useEffect(() => {
+    if (!isSearchMode && setores) {
+      setDisplayData(setores);
+    }
+  }, [setores, isSearchMode]);
+
+console.log(selectedSetores)
   return (
     <ModalBase
       id={userId}
@@ -51,6 +65,12 @@ function SetorSelectionModal({
       rota="Rh/VincularCoordenadorSetor"
     >
       <div>
+        <SearchComponent
+            rota="Rh/setores"
+            // title="VINCULAR COORDENADOR"
+            onSearchResult={handleSearchResult}
+            placeHolder="Nome, ID"
+          />
         {loading ? (
           <div>Carregando setores...</div>
         ) : (
@@ -64,7 +84,7 @@ function SetorSelectionModal({
                 </tr>
               </thead>
               <tbody>
-                {setores.map((setor) => (
+                {displayData.map((setor) => (
                   <tr key={setor.codigo}>
                     <td>{setor.codigo}</td>
                     <td>{setor.nome}</td>
@@ -98,7 +118,7 @@ function SetorSelectionModal({
               onPageChange={setCurrentPage}
               itemsLabel="setores"
             />
-            <button onClick={handleSave}>Salvar</button>
+            {/* <button onClick={handleSave}>Salvar</button> */}
           </>
         )}
       </div>
@@ -107,6 +127,9 @@ function SetorSelectionModal({
 }
 
 function VinculoCoordenador() {
+  const [displayData, setDisplayData] = useState<Coordenador[]>([]);
+  const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
+
   interface Coordenador {
     id: number;
     nome: string;
@@ -118,34 +141,47 @@ function VinculoCoordenador() {
   const {
     data: funcionario,
     loading: loadingFuncionario,
-    error: errorFuncionario,
+    // error: errorFuncionario,
     pagination: paginationFuncionario,
     setCurrentPage: setCurrentPageFuncionario,
   } = usePagination<Coordenador>("Rh/usuarios", 25);
 
-  // const {
-  //   data: Setores,
-  //   loading: loadingSetores,
-  //   error: errorSetores,
-  //   pagination: paginationSetores,
-  //   setCurrentPage: setCurrentPageSetores,
-  // } = usePagination<Setores>("Rh/setores", 25);
+  useEffect(() => {
+    console.log(paginationFuncionario);
+    if (!isSearchMode && funcionario) {
+      setDisplayData(funcionario);
+    }
+  }, [funcionario, isSearchMode]);
+
+  const handleSearchResult = (searchData: any) => {
+    if (searchData === null) {
+      // Limpa a busca e volta para todos os dados
+      setIsSearchMode(false);
+      setDisplayData(funcionario);
+    } else {
+      // Exibe os resultados da busca
+      setIsSearchMode(true);
+      // Verifica se a API retorna array ou objeto único
+      const results = Array.isArray(searchData) ? searchData : [searchData];
+      setDisplayData(results);
+    }
+  };
 
   const Loading = () => {
     return "Carregando Dados.....";
   };
-
-  function handleGetDataSuccess(data: any): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <>
       {/* <div className="content"> */}
       <main>
         <section>
-          
-            <SearchComponent rota="Rh/usuarios" title="VINCULAR COORDENADOR"/>
+          <SearchComponent
+            rota="Rh/usuarios"
+            title="VINCULAR COORDENADOR"
+            onSearchResult={handleSearchResult}
+            placeHolder="Crachá,Nome,Setor"
+          />
 
           {loadingFuncionario ? (
             <Loading />
@@ -161,7 +197,7 @@ function VinculoCoordenador() {
                 </tr>
               </thead>
               <tbody>
-                {funcionario.map((fnc) => (
+                {displayData.map((fnc) => (
                   <tr key={fnc.dsUsuario}>
                     <td>{fnc.dsUsuario}</td>
                     <td>{fnc.nome}</td>

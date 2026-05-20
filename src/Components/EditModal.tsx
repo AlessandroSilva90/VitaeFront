@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { api } from "../services/api";
+import pencil from "../assets/pencil.png"
+import "../App.scss"
 
 interface ModalBaseProps {
   children?: ReactNode;
@@ -10,7 +12,7 @@ interface ModalBaseProps {
   onOpen?: () => Promise<any> | void;
   buttonText?: string;
   buttonVariant?: string;
-  buttonIcon?: string;
+  // buttonIcon?: string;
   rotaUpdate?: string;
   rotaGet?: string;
   modalSize?: "sm" | "lg" | "xl";
@@ -29,7 +31,7 @@ export default function EditModal({
   titulo = "Editar",
   buttonText = "Abrir",
   buttonVariant = "primary",
-  buttonIcon,
+  // buttonIcon,
   rotaUpdate,
   rotaGet,
   modalSize = "lg",
@@ -43,7 +45,7 @@ export default function EditModal({
 }: ModalBaseProps) {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>();
+  const [, setData] = useState<any>();
 
   const handleShow = async () => {
     setShow(true);
@@ -63,12 +65,40 @@ export default function EditModal({
       if (fnc1) {
         fnc1();
       }
-    } catch (error) {
-      console.error("Erro ao carregar:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    }catch (err: any) {
+        console.error("Erro detalhado:", err);
+  
+        // Verifica se existe resposta do servidor
+        if (err.response) {
+          // Acessa os dados do erro
+          const errorData = err.response.data;
+  
+          console.log("Status:", err.response.status);
+          console.log("Dados completos:", errorData);
+  
+          // Para erro de validação (400) com formato do .NET
+          if (err.response.status === 400 && errorData.errors) {
+            // Pega todas as mensagens de erro
+            const errorMessages = Object.values(errorData.errors).flat();
+            alert(errorMessages.join("\n"));
+          }
+          // Se for um erro com mensagem personalizada
+          else if (errorData.message) {
+            alert(errorData.message);
+          }
+          // Se for um erro de validação simples
+          else if (errorData.title) {
+            alert(`${errorData.title}: ${errorData.detail || ""}`);
+          } else {
+            alert("Erro ao ATUALIZAR registro");
+          }
+        } else {
+          alert("Erro de conexão com o servidor");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
 
   const handleClose = () => {
     setShow(false);
@@ -136,12 +166,13 @@ export default function EditModal({
 
   return (
     <>
-      {buttonIcon ? (
+      {pencil ? (
         <img
-          src={buttonIcon}
+          src={pencil}
           onClick={handleShow}
-          style={{ cursor: "pointer", width: "24px", height: "24px" }}
+          style={{ cursor: "pointer", width: "24px", height: "24px",display:"inline-block"}}
           alt="Abrir"
+          className="icon-btn-fnc"
         />
       ) : (
         <Button variant={buttonVariant} onClick={handleShow}>

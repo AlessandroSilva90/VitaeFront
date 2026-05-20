@@ -1,5 +1,5 @@
 // components/Paginador.tsx
-import { Button } from "react-bootstrap";
+// import { Button } from "react-bootstrap";
 
 interface PaginadorProps {
   currentPage: number;

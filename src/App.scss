@@ -150,15 +150,19 @@ nav {
 
 .menu-lista {
   list-style: none;
+  // gap: 15px;
+  padding: 0px;
 }
 
 .menu-item {
   padding: 12px 15px;
+  // gap: 15px;
   display: flex;
   align-items: center;
   transition: all 0.2s;
   cursor: pointer;
   border-left: 3px solid transparent;
+  width: 100%;
 }
 
 .menu-item:hover {
@@ -168,7 +172,7 @@ nav {
 
 .menu-item.ativo {
   background-color: rgba(130, 205, 255, 0.521);
-  border-left: 3px solid #3498db;
+  border-left: 8px solid #3498db;
 }
 
 .menu-item i {
@@ -470,9 +474,34 @@ font-weight: bold;
   }
 
 
+
+
+
   // input{
   //   background-color: #f5f7fa;
   //   padding: .5rem;
   //   border-radius: .5rem;
   // }
+}
+
+
+  // ICONES DOS COMPONENTES
+.icon-btn-fnc{
+  margin: 5px 0px 5px 0px;
+}
+.icon-btn-fnc:hover {
+  animation: tilt-shaking 0.15s .05s;
+}
+
+@keyframes tilt-shaking {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  50% { transform: rotate(0eg); }
+  75% { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.menu-list-item{
+  display: flex;
+  gap: 15px;
 }

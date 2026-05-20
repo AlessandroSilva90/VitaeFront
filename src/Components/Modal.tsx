@@ -16,8 +16,10 @@ interface ModalBaseProps {
   confirmText?: string; // Texto do botão confirmar
   cancelText?: string; // Texto do botão cancelar
   showFooter?: boolean; // Mostrar rodapé?
-  dadosParaInserir?: any;
-  rota?:string;
+  dadosParaInserir?: any; // pegar dados de form tradicional, useState, etc
+  rota?: string;
+  onGetFormData?: () => any; //Função para capturar dados do formulário react-hook
+  onSuccess?: () => void;
 }
 
 export default function ModalBase({
@@ -29,16 +31,18 @@ export default function ModalBase({
   buttonVariant = "primary",
   buttonIcon,
   modalSize = "lg",
-  onConfirm,
+  // onConfirm,
   confirmText = "Confirmar",
   cancelText = "Cancelar",
   showFooter = true,
   dadosParaInserir,
-  rota
+  rota,
+  onGetFormData,
+  onSuccess,
 }: ModalBaseProps) {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [, setData] = useState<any>(null);
 
   const handleShow = async () => {
     setShow(true);
@@ -61,69 +65,81 @@ export default function ModalBase({
   };
 
   const handleConfirm = async () => {
-      // if (!dadosParaAtualizar) {
-      //   console.error("Nenhum dado para atualizar");
-      //   return;
-      // }
-      setLoading(true);
-  
-      // console.log(dadosParaAtualizar);
-  
-      try {
-        
-        let dados = {
-          cdCoordenador : `${id}`,
-          cdSetor : dadosParaInserir
-        }
+    setLoading(true);
 
-        const response = await api.post(
-          `${rota}`,
-          dados,
-        );
-        // console.log("Seliga pivete", response)
+    let dadosParaEnviar = dadosParaInserir;
 
-        // console.log("Resposta da API:", response.data);
-        alert("Registro ATUALIZADO com sucesso!");
-  
-        // if (onUpdateSuccess) {
-        //   onUpdateSuccess();
-        // }
-  
-        // handleClose();
-      } catch (err: any) {
-        console.error("Erro detalhado:", err);
-  
-        // Verifica se existe resposta do servidor
-        if (err.response) {
-          // Acessa os dados do erro
-          const errorData = err.response.data;
-  
-          console.log("Status:", err.response.status);
-          console.log("Dados completos:", errorData);
-  
-          // Para erro de validação (400) com formato do .NET
-          if (err.response.status === 400 && errorData.errors) {
-            // Pega todas as mensagens de erro
-            const errorMessages = Object.values(errorData.errors).flat();
-            alert(errorMessages.join("\n"));
-          }
-          // Se for um erro com mensagem personalizada
-          else if (errorData.message) {
-            alert(errorData.message);
-          }
-          // Se for um erro de validação simples
-          else if (errorData.title) {
-            alert(`${errorData.title}: ${errorData.detail || ""}`);
-          } else {
-            alert("Erro ao ATUALIZAR registro");
-          }
-        } else {
-          alert("Erro de conexão com o servidor");
-        }
-      } finally {
+    if (onGetFormData) {
+      dadosParaEnviar = onGetFormData();
+
+      // Validação básica: verifica se retornou dados
+      if (!dadosParaEnviar) {
+        alert("Preencha todos os campos obrigatórios!");
         setLoading(false);
+        return;
       }
-    };
+    }
+
+    // console.log('INserir essa misera:' + dadosParaEnviar);
+         // console.log(`Dados para enviar:` , dadosParaEnviar);
+         
+         try {
+           if (id){
+             let dados = {
+               codigo: `${id}`,
+               itens: dadosParaEnviar,
+             };
+             await api.post(`${rota}`, dados);
+      }else{
+          await api.post(`${rota}`, dadosParaEnviar);
+
+      }
+
+      
+      alert("Registro INSERIDO com sucesso!");
+
+      // if (onUpdateSuccess) {
+      //   onUpdateSuccess();
+      // }
+
+      handleClose();
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: any) {
+      console.error("Erro detalhado:", err);
+
+      // Verifica se existe resposta do servidor
+      if (err.response) {
+        // Acessa os dados do erro
+        const errorData = err.response.data;
+
+        console.log("Status:", err.response.status);
+        console.log("Dados completos:", errorData);
+
+        // Para erro de validação (400) com formato do .NET
+        if (err.response.status === 400 && errorData.errors) {
+          // Pega todas as mensagens de erro
+          const errorMessages = Object.values(errorData.errors).flat();
+          alert(errorMessages.join("\n"));
+        }
+        // Se for um erro com mensagem personalizada
+        else if (errorData.message) {
+          alert(errorData.message);
+        }
+        // Se for um erro de validação simples
+        else if (errorData.title) {
+          alert(`${errorData.title}: ${errorData.detail || ""}`);
+        } else {
+          alert("Erro ao ATUALIZAR registro");
+        }
+      } else {
+        alert("Erro de conexão com o servidor");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>

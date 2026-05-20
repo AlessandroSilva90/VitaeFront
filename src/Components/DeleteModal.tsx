@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Modal, Button } from "react-bootstrap";
-import axios from "axios";
+import { api } from "../services/api";
+import trash from "../assets/trash.png";
 
 interface ModalBaseProps {
   children?: ReactNode; // Conteúdo do modal
@@ -10,7 +11,7 @@ interface ModalBaseProps {
   onOpen?: () => Promise<any> | void;
   buttonText?: string;
   buttonVariant?: string;
-  buttonIcon?: string;
+  // buttonIcon?: string;
   rota?: string;
   modalSize?: "sm" | "lg" | "xl";
   onConfirm?: () => void; // Função para botão Confirmar
@@ -21,16 +22,16 @@ interface ModalBaseProps {
 }
 
 export default function DeleteModal({
-  children,
+  // children,
   id,
   titulo = "Excluir",
   onOpen,
   buttonText = "Abrir",
   buttonVariant = "primary",
-  buttonIcon,
+  // buttonIcon,
   rota,
   modalSize = "lg",
-  onConfirm,
+  // onConfirm,
   confirmText = "Confirmar",
   cancelText = "Cancelar",
   showFooter = true,
@@ -48,6 +49,7 @@ export default function DeleteModal({
       try {
         const result = await onOpen();
         setData(result);
+        console.log(data);
       } catch (error) {
         console.error(error);
       }
@@ -62,9 +64,7 @@ export default function DeleteModal({
 
   const handleConfirm = async () => {
     try {
-      const response = await axios.delete(
-        `http://localhost:5192/api/${rota}/${id}`,
-      );
+      await api.delete(`${rota}/${id}`);
 
       if (onDeleteSuccess) {
         onDeleteSuccess();
@@ -81,12 +81,18 @@ export default function DeleteModal({
 
   return (
     <>
-      {buttonIcon ? (
+      {trash ? (
         <img
-          src={buttonIcon}
+          src={trash}
           onClick={handleShow}
-          style={{ cursor: "pointer", width: "24px", height: "24px" }}
+          style={{
+            cursor: "pointer",
+            width: "24px",
+            height: "24px",
+            display: "inline-block"
+          }}
           alt="Abrir"
+          className="icon-btn-fnc"
         />
       ) : (
         <Button variant={buttonVariant} onClick={handleShow}>

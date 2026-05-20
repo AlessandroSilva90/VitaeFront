@@ -1,118 +1,63 @@
-import { useEffect, useState } from "react";
-import { api } from "../../services/api";
+import {useState } from "react";
 import DeleteModal from "../../Components/DeleteModal";
 import EditModal from "../../Components/EditModal";
 import ModalBase from "../../Components/Modal";
-
 import { useForm } from "react-hook-form";
-import type { SubmitHandler } from "react-hook-form";
+import Pagination from "../../Components/Pagination2";
+import usePagination from "../../hooks/usePagination";
 
-interface Usuarios {
+interface Usuarios2 {
+  id:number;
   nome: string;
   email?: number;
   cracha: string;
-  snfuncionario: string;
-  snativo: boolean;
+  snFuncionario: string;
+  snAtivo: boolean;
   dsUsuario: boolean;
-}
-
-interface PaginationResponse {
-  data: Usuarios[];
-  pagination: {
-    currentPage: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
 }
 
 type cadUsuario = {
   Nome: string;
-  Cracha?: number;
+  cracha?: number;
   Email: string;
   DsUsuario: string;
-  SnFuncionario?: boolean;
-  SnAtivo: boolean;
+  snFuncionario?: boolean;
+  snAtivo: boolean;
   Senha: string;
 };
 
 const Usuarios = () => {
-  const [usuarios, setUsuarios] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize] = useState<number>(25);
-  const [totalItems, setTotalItems] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+
+    const {
+    data: usuario,
+    loading: loadingUsuario,
+    pagination: paginationUsuario,
+    setCurrentPage: setCurrentPageUsuario,
+    refetch: atualizaDados
+  } = usePagination<Usuarios2>("Rh/usuarios", 25);
 
   const {
     register,
-    handleSubmit,
-    watch,
     formState: { errors },
+    reset,
+    getValues,
   } = useForm<cadUsuario>();
 
-  const onSubmit: SubmitHandler<cadUsuario> = async (data) => {
-    console.log(data);
-    try {
-      const response = await api.post("Rh/cadastrarUsuario", data);
-      console.log(response);
-      alert("Usuário cadastrado com sucesso!");
-      fetchmodulosPaginados(currentPage);
-    } catch (err: any) {
-      // console.error("Erro:", err);
-
-      const errorData = err.response.data;
-      console.log(err.response);
-      if (errorData.errors) {
-        const messages = Object.values(errorData.errors).flat();
-        alert(`Erro de validação:\n${messages.join("\n")}`);
-      }
-
-      alert("Erro ao cadastrar usuário");
-      throw err;
-    }
+  const getFormData = () => {
+    const values = getValues();
+    return values;
   };
 
-  //   const [nmModulo, setnmModulo] = useState<string>("");
-  //   const [snAtivo, setSnAtivo] = useState<boolean>(true);
   const [editUsuario, setEditUsuario] = useState<any>(null);
 
   const handleGetDataSuccess = (dados: any) => {
     setEditUsuario(dados);
-    console.log(dados);
+    console.log(dados)
   };
 
-  const fetchmodulosPaginados = async (page: number) => {
-    setLoading(true);
-    try {
-      const response = await api.get<PaginationResponse>(
-        `Rh/usuarios?page=${page}&pageSize=${pageSize}`,
-      );
-
-      setUsuarios(response.data.data);
-      setCurrentPage(response.data.pagination.currentPage);
-      setTotalItems(response.data.pagination.totalItems);
-      setTotalPages(response.data.pagination.totalPages);
-      setHasNextPage(response.data.pagination.hasNextPage);
-      setHasPreviousPage(response.data.pagination.hasPreviousPage);
-    } catch (err: any) {
-      console.error("Erro:", err);
-      alert(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchmodulosPaginados(currentPage);
-  }, [currentPage]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleSuccess = () => {
+    reset(); // Limpa o formulário
+    atualizaDados() //atualizar a lista
   };
 
   return (
@@ -120,7 +65,7 @@ const Usuarios = () => {
       <section>
         <h2 className="titlePage">Usuários</h2>
 
-        {loading ? (
+        {loadingUsuario ? (
           "Carregando Dados..."
         ) : (
           <table className="tbl-components">
@@ -132,19 +77,19 @@ const Usuarios = () => {
                 <th>Cracha</th>
                 <th>Funcionário ?</th>
                 <th>Ativo ?</th>
-                <th>Ações</th>
+                <th style={{display:"flex", justifyContent:"center"}}>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((u) => (
+              {usuario.map((u) => (
                 <tr key={u.id}>
                   <td>{u.id}</td>
                   <td>{u.nome}</td>
                   <td>{u.dsUsuario}</td>
                   <td>{u.cracha}</td>
                   <td>{u.snFuncionario ? "SIM" : "NÃO"}</td>
-                  <td>{u.snFuncionario ? "ATIVO " : "INATIVO"}</td>
-                  <td>
+                  <td>{u.snAtivo ? "ATIVO " : "INATIVO"}</td>
+                  <td style={{display:"flex", justifyContent:'center', gap:"10px"}}>
                     <EditModal
                       id={u.id}
                       buttonText="Editar"
@@ -154,7 +99,7 @@ const Usuarios = () => {
                       rotaUpdate="Rh/updateUsuario"
                       onGetDataSuccess={handleGetDataSuccess}
                       dadosParaAtualizar={editUsuario}
-                      onUpdateSuccess={() => fetchmodulosPaginados(currentPage)}
+                      onUpdateSuccess={() => atualizaDados()}
                     >
                       <form>
                         <div className="form-group-md">
@@ -260,8 +205,8 @@ const Usuarios = () => {
                       buttonText="Excluir"
                       buttonVariant="danger"
                       titulo="Excluir"
-                      rota="Rh/deleUsuario"
-                      onDeleteSuccess={() => fetchmodulosPaginados(currentPage)}
+                      rota="Rh/deleteUsuario"
+                      // onDeleteSuccess={() => fetchmodulosPaginados(currentPage)}
                     />
                   </td>
                 </tr>
@@ -269,13 +214,25 @@ const Usuarios = () => {
             </tbody>
           </table>
         )}
+        <Pagination
+      currentPage={paginationUsuario.currentPage}
+      totalPages={paginationUsuario.totalPages}
+      totalItems={paginationUsuario.totalItems}
+      hasNextPage={paginationUsuario.hasNextPage}
+      hasPreviousPage={paginationUsuario.hasPreviousPage}
+      onPageChange={setCurrentPageUsuario}
+      itemsLabel="usuario"
+    />
       </section>
 
       <ModalBase
         buttonText="Novo Usuário"
         buttonVariant="success"
         titulo="Cadastro"
-        onConfirm={handleSubmit(onSubmit)}
+        dadosParaInserir={null}
+        onGetFormData={getFormData} 
+        onSuccess={handleSuccess}
+        rota="Rh/cadastrarUsuario"
       >
         <form>
           <div className="form-group-md">
@@ -296,7 +253,10 @@ const Usuarios = () => {
             <label>Cracha</label>
             <input
               type="number" // ← type number para números
-              {...register("Cracha", { valueAsNumber: true })} // ← Cracha (maiúsculo)
+              {...register("cracha", { valueAsNumber: true })} // ← Cracha (maiúsculo)
+              onChange={(e) => {
+                register("cracha").onChange(e);
+              }}
             />
           </div>
 
@@ -323,7 +283,7 @@ const Usuarios = () => {
           <div className="form-group-md">
             <label>Funcionário ?</label>
             <input
-              {...register("SnFuncionario")} // ← SnFuncionario (maiúsculo)
+              {...register("snFuncionario")} // ← SnFuncionario (maiúsculo)
               type="checkbox"
               className="inpt-check"
             />
@@ -332,7 +292,7 @@ const Usuarios = () => {
           <div className="form-group-md">
             <label>Ativo ?</label>
             <input
-              {...register("SnAtivo")} // ← SnAtivo (maiúsculo, corrigido)
+              {...register("snAtivo")} // ← SnAtivo (maiúsculo, corrigido)
               type="checkbox"
               className="inpt-check"
               defaultChecked={true} // Valor padrão

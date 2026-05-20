@@ -1,58 +1,41 @@
-// import { useState } from 'react'
-import axios from "axios";
-
 import "../../App.scss";
 import { useEffect, useState } from "react";
+import usePagination from "../../hooks/usePagination";
+import SearchComponent from "../../Components/SearchComponent";
+import Pagination from "../../Components/Pagination2";
 
-interface Cargo {
-  codigo: number;
+interface Funcionario {
+  id: number;
   nome: string;
-  descricao?: string;
-}
-
-interface PaginationResponse {
-  data: Cargo[];
-  pagination: {
-    currentPage: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+  setor?: string;
 }
 
 function Funcionarios() {
-  const [cargos, setCargos] = useState<any[]>([]);
-  //   const [pagiantion, setPagination] = useState<any[]>([]);
+  const [displayData, setDisplayData] = useState<Funcionario[]>([]);
+  const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize] = useState<number>(25);
-  const [totalItems, setTotalItems] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
-  const [hasPreviousPage, setHasPreviousPage] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+  const {
+    data: funcionario,
+    loading: loadingFuncionario,
+    // error: errorFuncionario,
+    pagination: paginationFuncionario,
+    setCurrentPage: setCurrentPageFuncionario,
+  } = usePagination<Funcionario>("Rh/funcionarios", 25);
 
-  const fetchCargosPaginados = async (page: number) => {
-    setLoading(true);
-    try {
-      const response = await axios.get<PaginationResponse>(
-        `http://localhost:5192/api/Rh/funcionarios?page=${page}&pageSize=${pageSize}`,
-      );
+  useEffect(() => {
+    if (!isSearchMode && funcionario) {
+      setDisplayData(funcionario);
+    }
+  }, [funcionario, isSearchMode]);
 
-      // Atualizar dados e paginação
-      setCargos(response.data.data);
-      setCurrentPage(response.data.pagination.currentPage);
-      setTotalItems(response.data.pagination.totalItems);
-      setTotalPages(response.data.pagination.totalPages);
-      setHasNextPage(response.data.pagination.hasNextPage);
-      setHasPreviousPage(response.data.pagination.hasPreviousPage);
-    } catch (err: any) {
-      console.error("Erro:", err);
-      alert(err);
-    } finally {
-      setLoading(false);
+  const handleSearchResult = (searchData: any) => {
+    if (searchData === null) {
+      setIsSearchMode(false);
+      setDisplayData(funcionario);
+    } else {
+      setIsSearchMode(true);
+      const results = Array.isArray(searchData) ? searchData : [searchData];
+      setDisplayData(results);
     }
   };
 
@@ -60,42 +43,12 @@ function Funcionarios() {
     return "Carregando Dados.....";
   };
 
-  useEffect(() => {
-    fetchCargosPaginados(currentPage);
-  }, [currentPage]);
-
-  const handleNextPage = () =>
-    hasNextPage && setCurrentPage((prev) => prev + 1);
-  const handlePreviousPage = () =>
-    hasPreviousPage && setCurrentPage((prev) => prev - 1);
-  const handlePageClick = (pageNumber: number) => setCurrentPage(pageNumber);
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxPagesToShow = 5;
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = startPage + maxPagesToShow - 1;
-
-    if (endPage > totalPages) {
-      endPage = totalPages;
-      startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
-
   return (
     <>
-      {/* <div className="content"> */}
       <main>
         <section>
-          <h2 className="titlePage">Funcionários</h2>
-
-          {loading ? (
+          <SearchComponent rota="Rh/funcionarios" title="Funcionários"  onSearchResult={handleSearchResult} placeHolder="Crachá" />
+          {loadingFuncionario ? (
             <Loading />
           ) : (
             <table className="tbl-components">
@@ -107,56 +60,27 @@ function Funcionarios() {
                 </tr>
               </thead>
               <tbody>
-                {cargos.map((cargo) => (
-                  <tr key={cargo.id}>
-                    <td>{cargo.id}</td>
-                    <td>{cargo.nome}</td>
-                    <td>{cargo.setor || "Sem descrição"}</td>
+                {displayData.map((fnc) => (
+                  <tr key={fnc.id}>
+                    <td>{fnc.id}</td>
+                    <td>{fnc.nome}</td>
+                    <td>{fnc.setor || "Sem descrição"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
-          <div className="pagination">
-            <div className="pagination-info">
-              Página {currentPage} de {totalPages} • Total: {totalItems} cargos
-            </div>
-
-            <div className="pagination-controls">
-              <button
-                className="btn-pagination"
-                onClick={handlePreviousPage}
-                disabled={!hasPreviousPage}
-              >
-                Anterior
-              </button>
-
-              {getPageNumbers().map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageClick(page)}
-                  className={
-                    currentPage === page
-                      ? "active btn-pagination"
-                      : "btn-pagination"
-                  }
-                >
-                  {page}
-                </button>
-              ))}
-
-              <button
-                onClick={handleNextPage}
-                disabled={!hasNextPage}
-                className="btn-pagination"
-              >
-                Próximo
-              </button>
-            </div>
-          </div>
+          <Pagination
+            currentPage={paginationFuncionario.currentPage}
+            totalPages={paginationFuncionario.totalPages}
+            totalItems={paginationFuncionario.totalItems}
+            hasNextPage={paginationFuncionario.hasNextPage}
+            hasPreviousPage={paginationFuncionario.hasPreviousPage}
+            onPageChange={setCurrentPageFuncionario}
+            itemsLabel="usuario"
+          />
         </section>
       </main>
-      {/* </div> */}
     </>
   );
 }

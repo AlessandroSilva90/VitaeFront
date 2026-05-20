@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
 
-import sandwich from "../assets/hamburger.svg"
+// import sandwich from "../assets/hamburger.svg"
+import star from "../assets/star.svg";
 
 // Interface para definir o tipo dos itens do menu
-interface MenuItem {
-  id: string;
-  texto: string;
-  conteudo: string;
-}
+// interface MenuItem {
+//   id: string;
+// }
+import { api } from "../services/api";
+
+import cadastro from "../assets/lista.svg";
+import relatorio from "../assets/arquivo-pdf.svg";
+import tarefas from "../assets/chave-simples.svg";
+import consulta from "../assets/procurar.svg";
 
 const Sidebar: React.FC = () => {
   // Estado para controlar se o menu está retraído
@@ -25,34 +30,18 @@ const Sidebar: React.FC = () => {
   // Estado para controlar a largura da tela (responsividade)
   const [larguraTela, setLarguraTela] = useState<number>(window.innerWidth);
 
-  // Dados dos itens do menu
-  const menuItems: MenuItem[] = [
-    { id: "inicio", texto: "Início", conteudo: "inicio" },
-    {
-      id: "dashboard",
-      texto: "Dashboard",
-      conteudo: "dashboard",
-    },
-    { id: "perfil", texto: "Perfil", conteudo: "perfil" },
-    {
-      id: "configuracoes",
-      texto: "Configurações",
-      conteudo: "configuracoes",
-    },
-    {
-      id: "mensagens",
-      texto: "Mensagens",
-      conteudo: "mensagens",
-    },
-    {
-      id: "arquivos",
-      texto: "Arquivos",
-      conteudo: "arquivos",
-    },
-  ];
+  const [menus, setMenus] = useState<any>([]);
+
+  const icones: any = { 0: cadastro, 3: relatorio, 1: tarefas, 2: consulta };
 
   // Efeito para monitorar a largura da tela
   useEffect(() => {
+    const getMenusPerfil = async () => {
+      const response = await api.get("Modules/menus");
+      setMenus(response.data.data);
+    };
+    getMenusPerfil();
+
     const handleResize = () => {
       setLarguraTela(window.innerWidth);
 
@@ -76,12 +65,12 @@ const Sidebar: React.FC = () => {
   };
 
   // Função para capitalizar a primeira letra de uma string
-  const capitalizeFirstLetter = (string: string): string => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
+  // const capitalizeFirstLetter = (string: string): string => {
+  //   return string.charAt(0).toUpperCase() + string.slice(1);
+  // };
 
   // Função para lidar com o clique em um item do menu
-  const handleMenuItemClick = (item: MenuItem) => {
+  const handleMenuItemClick = (item: any) => {
     setItemAtivo(item.id);
     // setTituloPagina(item.texto);
 
@@ -117,23 +106,26 @@ const Sidebar: React.FC = () => {
           {/* <i
             className={menuRetraido ? "fas fa-chevron-right" : "fas fa-bars"}
           ></i> */}
-          <img src={sandwich} width='30px' className="sandwich"/>
+          <img src={star} width="25px" className="sandwich" />
         </button>
       </div>
 
       <nav>
         <ul className="menu-lista">
-          {menuItems.map((item) => (
+          {menus.map((item: any, indice: number) => (
             <li
               key={item.id}
               className={`menu-item ${itemAtivo === item.id ? "ativo" : ""}`}
-              data-conteudo={item.conteudo}
+              data-conteudo={item.nmMenu}
               onClick={() => handleMenuItemClick(item)}
             >
-              <i className=""></i>
-              <span className={`menu-texto ${menuRetraido ? "hidden" : ""}`}>
-                {item.texto}
-              </span>
+              <div className="menu-list-item">
+                <img src={icones[indice]} width={24} />
+
+                <span className={`menu-texto ${menuRetraido ? "hidden" : ""}`}>
+                  {item.nmMenu}
+                </span>
+              </div>
             </li>
           ))}
         </ul>

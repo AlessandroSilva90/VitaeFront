@@ -2,7 +2,7 @@ import usePagination from '../../hooks/usePagination';
 import Pagination from '../../Components/Pagination2';
 import "../../App.scss";
 
-interface Cargo {
+interface setor {
   codigo: number;
   nome: string;
   descricao?: string;
@@ -16,7 +16,7 @@ function Setores() {
     error,
     pagination,
     setCurrentPage,
-  } = usePagination<Cargo>("Rh/setores", 25);
+  } = usePagination<setor>("Rh/setores", 25);
 
   if (loading) {
     return (
@@ -54,11 +54,11 @@ function Setores() {
             </tr>
           </thead>
           <tbody>
-            {setores.map((cargo) => (
-              <tr key={cargo.codigo}>
-                <td>{cargo.codigo}</td>
-                <td>{cargo.nome}</td>
-                <td>{cargo.setor || "Sem descrição"}</td>
+            {setores.map((setor) => (
+              <tr key={setor.codigo}>
+                <td>{setor.codigo}</td>
+                <td>{setor.nome}</td>
+                <td>{setor.setor || "Sem descrição"}</td>
               </tr>
             ))}
           </tbody>

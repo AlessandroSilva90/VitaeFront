@@ -4,44 +4,57 @@ import { api } from "../services/api";
 
 interface SearchBase {
   rota: string;
-  title: string;
+  title?: string;
+  placeHolder: string;
+  onSearchResult?: (data: any) => void;
 }
 
-const SearchComponent = ({ rota, title }: SearchBase) => {
+const SearchComponent = ({ rota, title, onSearchResult,placeHolder }: SearchBase) => {
+
   const [value, setValue] = useState<string>("");
+  const [, setIsSearching] = useState<boolean>(false);
 
   const handleSearch = async (e: any) => {
     e.preventDefault();
-    try{
+    if (!value.trim()) {
+      // Se a busca estiver vazia, recarrega todos os dados
+      if (onSearchResult) {
+        onSearchResult(null); // null indica para carregar todos
+      }
+      return;
+    }
 
-        const response = await api.get(`${rota}/${value}`);
-        console.log(response);
-    }catch(err:any){
-        console.error("Erro detalhado:", err);
-  
-        
-        if (err.response) {
-        
-          const errorData = err.response.data;
-  
-          console.log("Status:", err.response.status);
-          console.log("Dados completos:", errorData);
+    setIsSearching(true);
+    try {
+      const response = await api.get(`${rota}/${value}`);
+      if (onSearchResult) {
+        onSearchResult(response.data); // Envia os resultados para o pai
+      }
+      // console.log(response.data);
+    } catch (err: any) {
+      console.error("Erro detalhado:", err);
 
-          let mensagem = "Erro desconhecido";
-        
-        if (typeof errorData === 'string') {
-            mensagem = errorData; // Se for string direta
+      if (err.response) {
+        const errorData = err.response.data;
+
+        console.log("Status:", err.response.status);
+        console.log("Dados completos:", errorData);
+
+        let mensagem = "Erro desconhecido";
+
+        if (typeof errorData === "string") {
+          mensagem = errorData; // Se for string direta
         } else if (errorData?.message) {
-            mensagem = errorData.message; // Se for objeto com message
+          mensagem = errorData.message; // Se for objeto com message
         } else if (errorData?.title) {
-            mensagem = errorData.title; // Se for ProblemDetails do .NET
+          mensagem = errorData.title; // Se for ProblemDetails do .NET
         }
-        
+
         console.log("Mensagem:", mensagem);
-        
+
         // Exibir para o usuário
         alert(mensagem);
-        }
+      }
     }
   };
 
@@ -55,7 +68,7 @@ const SearchComponent = ({ rota, title }: SearchBase) => {
               type="text"
               name=""
               id="srcInputData"
-              placeholder="Usuário,Crachá ou Nome"
+              placeholder={placeHolder}
               onChange={(e) => {
                 setValue(e.target.value);
               }}
