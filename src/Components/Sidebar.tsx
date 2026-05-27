@@ -7,6 +7,7 @@ import star from "../assets/star.svg";
 // interface MenuItem {
 //   id: string;
 // }
+// aaaaaaaaaaaaa
 import { api } from "../services/api";
 
 import cadastro from "../assets/lista.svg";
